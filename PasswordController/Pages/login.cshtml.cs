@@ -44,18 +44,19 @@ namespace PasswordControllerApp.Pages
             bool success = _passwordService.Login(FirstName, Password, Pin);
             if (success)
             {
-                SuccessMessage = "Login successful! Welcome back.";
-                ErrorMessage = null;
-                // In a real app, redirect to dashboard
-                // Clear inputs
-                FirstName = string.Empty;
-                Password = string.Empty;
-                Pin = string.Empty;
+                TempData["LoggedIn"] = true;  // Simple session flag
+                // Redirect to Profile
+                return RedirectToPage("/Profile");
             }
             else
             {
                 ErrorMessage = "Login failed. Check your credentials.";
             }
+
+            // Clear inputs (now inside the method)
+            FirstName = string.Empty;
+            Password = string.Empty;
+            Pin = string.Empty;
 
             return Page();
         }

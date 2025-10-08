@@ -1,3 +1,6 @@
+using PasswordControllerApp.Models;  // For VaultEntry
+using System.Collections.Generic;   // For List<T>
+
 namespace PasswordControllerApp.Services
 {
     public interface IPasswordService
@@ -12,5 +15,6 @@ namespace PasswordControllerApp.Services
         string HashString(string input);
         bool AddVaultEntry(string email, string password);
         List<VaultEntry> GetVaultEntries();
+        string GenerateStrongPassword(int length = 16);  // Added this
     }
 }

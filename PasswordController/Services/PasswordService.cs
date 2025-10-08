@@ -1,6 +1,7 @@
 using PasswordControllerApp.Models;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Generic;  // For List<T>
 
 namespace PasswordControllerApp.Services
 {
@@ -212,10 +213,16 @@ namespace PasswordControllerApp.Services
             }
 
             // Ensure at least one of each type (simple shuffle for demo)
-            password[0] = uppercase[random.Next(uppercase.Length)];
-            password[1] = lowercase[random.Next(lowercase.Length)];
-            password[2] = numbers[random.Next(numbers.Length)];
-            password[3] = specials[random.Next(specials.Length)];
+            var rng = RandomNumberGenerator.Create();
+            byte[] buffer = new byte[1];
+            rng.GetBytes(buffer);
+            password[0] = uppercase[buffer[0] % uppercase.Length];
+            rng.GetBytes(buffer);
+            password[1] = lowercase[buffer[0] % lowercase.Length];
+            rng.GetBytes(buffer);
+            password[2] = numbers[buffer[0] % numbers.Length];
+            rng.GetBytes(buffer);
+            password[3] = specials[buffer[0] % specials.Length];
 
             return new string(password);
         }
