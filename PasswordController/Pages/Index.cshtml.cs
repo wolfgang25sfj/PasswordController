@@ -1,19 +1,17 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using PasswordControllerApp.Services;
 
-namespace PasswordController.Pages;
-
-public class IndexModel : PageModel
+namespace PasswordControllerApp.Pages
 {
-    private readonly ILogger<IndexModel> _logger;
-
-    public IndexModel(ILogger<IndexModel> logger)
+    public class IndexModel : PageModel
     {
-        _logger = logger;
-    }
+        private readonly IPasswordService _passwordService;
 
-    public void OnGet()
-    {
+        public IndexModel(IPasswordService passwordService)
+        {
+            _passwordService = passwordService;
+        }
 
+        public bool IsAccountSetUp => _passwordService.IsAccountSetUp();
     }
 }

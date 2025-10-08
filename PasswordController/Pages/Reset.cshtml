@@ -1,0 +1,18 @@
+@page
+@model ResetModel
+@{
+    ViewData["Title"] = "Reset Account";
+}
+
+<h2>Reset Account</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to reset the account? This will delete all stored data.
+</div>
+
+<form method="post">
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-danger">Confirm Reset</button>
+        <a asp-page="/Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
