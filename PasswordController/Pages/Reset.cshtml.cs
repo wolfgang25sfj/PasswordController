@@ -26,6 +26,7 @@ namespace PasswordControllerApp.Pages
         public IActionResult OnPost()
         {
             _passwordService.ResetAccount();
+            HttpContext.Session.Clear();  // Clear session too
             TempData["Success"] = "Account reset successfully.";
             return RedirectToPage("/Index");
         }

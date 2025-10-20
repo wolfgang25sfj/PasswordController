@@ -25,12 +25,20 @@ namespace PasswordControllerApp.Pages
         public string? ErrorMessage { get; set; }
         public string? SuccessMessage { get; set; }
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
             if (!_passwordService.IsAccountSetUp())
             {
-                ErrorMessage = "No account set up. Please set up first.";
+                ErrorMessage = "No account set up. Please <a asp-page='/Setup'>set up first</a>.";
+                return Page();
             }
+
+            if (HttpContext.Session.GetString("LoggedIn") == "true")
+            {
+                return RedirectToPage("/Profile");
+            }
+
+            return Page();
         }
 
         public IActionResult OnPost()
@@ -41,19 +49,27 @@ namespace PasswordControllerApp.Pages
                 return Page();
             }
 
+            // Clear stale session
+            if (HttpContext.Session.GetString("LoggedIn") == "true" && !_passwordService.Login(FirstName, Password, Pin))
+            {
+                HttpContext.Session.Clear();
+            }
+
             bool success = _passwordService.Login(FirstName, Password, Pin);
             if (success)
             {
-                TempData["LoggedIn"] = true;  // Simple session flag
-                // Redirect to Profile
+                HttpContext.Session.SetString("LoggedIn", "true");
+                HttpContext.Session.SetString("FirstName", FirstName);
+                TempData["Success"] = "Login successful!";
                 return RedirectToPage("/Profile");
             }
             else
             {
-                ErrorMessage = "Login failed. Check your credentials.";
+                ErrorMessage = "Login failed. Verify: First name (case-insensitive), password & PIN (case-sensitive).";
+                HttpContext.Session.Clear();
             }
 
-            // Clear inputs (now inside the method)
+            // Clear inputs
             FirstName = string.Empty;
             Password = string.Empty;
             Pin = string.Empty;

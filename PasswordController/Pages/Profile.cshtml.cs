@@ -1,8 +1,7 @@
-using Microsoft.AspNetCore.Mvc;  // For IActionResult, BindProperty
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PasswordControllerApp.Services;
-using PasswordControllerApp.Models;  // For VaultEntry
-using System.ComponentModel.DataAnnotations;  // For BindProperty if needed
+using PasswordControllerApp.Models;
 
 namespace PasswordControllerApp.Pages
 {
@@ -15,11 +14,8 @@ namespace PasswordControllerApp.Pages
             _passwordService = passwordService;
         }
 
-        public bool IsLoggedIn => TempData["LoggedIn"]?.ToString() == "true" && _passwordService.IsAccountSetUp();
-
-        // Fixed: Access FirstName properly (add a service method if needed; placeholder here)
-        public string? FirstName => "User";  // TODO: Expose from service for real use
-
+        public bool IsLoggedIn => HttpContext.Session.GetString("LoggedIn") == "true" && _passwordService.IsAccountSetUp();
+        public string FirstName => HttpContext.Session.GetString("FirstName") ?? _passwordService.GetFirstName();
         public List<VaultEntry> VaultEntries => _passwordService.GetVaultEntries();
         public string? ErrorMessage { get; set; }
         public string? SuccessMessage { get; set; }
@@ -30,18 +26,21 @@ namespace PasswordControllerApp.Pages
         [BindProperty]
         public string Password { get; set; } = string.Empty;
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
-            if (!IsLoggedIn)
+            if (!IsLoggedIn || !_passwordService.IsAccountSetUp())
             {
-                return;
+                HttpContext.Session.Clear();
+                return RedirectToPage("/Login");
             }
+            return Page();
         }
 
         public IActionResult OnPost()
         {
-            if (!IsLoggedIn)
+            if (!IsLoggedIn || !_passwordService.IsAccountSetUp())
             {
+                HttpContext.Session.Clear();
                 return RedirectToPage("/Login");
             }
 
@@ -59,6 +58,12 @@ namespace PasswordControllerApp.Pages
             }
 
             return Page();
+        }
+
+        public IActionResult OnPostLogout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToPage("/Index");
         }
     }
 }

@@ -15,7 +15,7 @@
                 <div class="navbar-nav">
                     <a class="nav-link" asp-page="/Index">Home</a>
                     <a class="nav-link" asp-page="/TestPassword">Test Password</a>
-                    @if (TempData["LoggedIn"]?.ToString() == "true")
+                    @if (Context.Session.GetString("LoggedIn") == "true")
                     {
                         <a class="nav-link" asp-page="/Profile">Profile</a>
                     }

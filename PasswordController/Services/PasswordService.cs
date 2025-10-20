@@ -1,7 +1,8 @@
 using PasswordControllerApp.Models;
 using System.Security.Cryptography;
 using System.Text;
-using System.Collections.Generic;  // For List<T>
+using System.Collections.Generic;
+using System.Linq;  // For Any()
 
 namespace PasswordControllerApp.Services
 {
@@ -70,49 +71,67 @@ namespace PasswordControllerApp.Services
             _storedData = null;
         }
 
-        public (bool IsValid, string Message) ValidatePassword(string password)
+        public (bool IsValid, List<string> Messages, StrengthLevel Level) ValidatePassword(string password)
         {
-            // Using if-else statements as requested
+            var messages = new List<string>();
+            var level = StrengthLevel.Weak;
+            int criteriaMet = 0;  // For scoring
+
             if (string.IsNullOrWhiteSpace(password))
             {
-                return (false, "Password cannot be empty.");
+                messages.Add("Password cannot be empty.");
             }
-
-            if (password.Length < 8)
+            else
             {
-                return (false, "Password must be at least 8 characters long.");
-            }
-
-            bool hasNumber = false;
-            bool hasSpecial = false;
-
-            foreach (char c in password)
-            {
-                if (char.IsDigit(c))
+                // Length check
+                if (password.Length < 8)
                 {
-                    hasNumber = true;
+                    messages.Add("Password must be at least 8 characters long.");
                 }
-                else if (IsSpecialCharacter(c))
+                else
                 {
-                    hasSpecial = true;
+                    criteriaMet++;
                 }
-                if (hasNumber && hasSpecial)
+
+                // Number check
+                bool hasNumber = password.Any(char.IsDigit);
+                if (!hasNumber)
                 {
-                    break; // Early exit if both found
+                    messages.Add("Password must contain at least one number.");
+                }
+                else
+                {
+                    criteriaMet++;
+                }
+
+                // Special check
+                bool hasSpecial = password.Any(IsSpecialCharacter);
+                if (!hasSpecial)
+                {
+                    messages.Add("Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)");
+                }
+                else
+                {
+                    criteriaMet++;
+                }
+
+                // Score level with if-else
+                if (criteriaMet == 3 && password.Length >= 12)  // Extra for longer
+                {
+                    level = StrengthLevel.Strong;
+                }
+                else if (criteriaMet >= 2)
+                {
+                    level = StrengthLevel.Medium;
+                }
+                else
+                {
+                    level = StrengthLevel.Weak;
                 }
             }
 
-            if (!hasNumber)
-            {
-                return (false, "Password must contain at least one number.");
-            }
-
-            if (!hasSpecial)
-            {
-                return (false, "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)");
-            }
-
-            return (true, "Password is secure.");
+            bool isValid = messages.Count == 0;
+            return (isValid, messages, level);
         }
 
         public (bool IsValid, string Message) ValidatePin(string pin)
@@ -165,7 +184,7 @@ namespace PasswordControllerApp.Services
             }
         }
 
-        // New: Vault methods
+        // Vault methods
         public bool AddVaultEntry(string email, string password)
         {
             if (!IsAccountSetUp()) return false;
@@ -192,7 +211,7 @@ namespace PasswordControllerApp.Services
             return IsAccountSetUp() ? _storedData!.VaultEntries : new List<VaultEntry>();
         }
 
-        // New: Generate strong password
+        // Generate strong password
         public string GenerateStrongPassword(int length = 16)
         {
             const string lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -201,10 +220,10 @@ namespace PasswordControllerApp.Services
             const string specials = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 
             var allChars = lowercase + uppercase + numbers + specials;
-            var random = RandomNumberGenerator.Create();
             var password = new char[length];
-            var allCharsBytes = Encoding.UTF8.GetBytes(allChars);
+            var random = RandomNumberGenerator.Create();
 
+            // Fill randomly
             for (int i = 0; i < length; i++)
             {
                 var randomBytes = new byte[1];
@@ -212,19 +231,23 @@ namespace PasswordControllerApp.Services
                 password[i] = allChars[randomBytes[0] % allChars.Length];
             }
 
-            // Ensure at least one of each type (simple shuffle for demo)
-            var rng = RandomNumberGenerator.Create();
-            byte[] buffer = new byte[1];
-            rng.GetBytes(buffer);
+            // Force one of each type at start positions
+            var buffer = new byte[1];
+            random.GetBytes(buffer);
             password[0] = uppercase[buffer[0] % uppercase.Length];
-            rng.GetBytes(buffer);
+            random.GetBytes(buffer);
             password[1] = lowercase[buffer[0] % lowercase.Length];
-            rng.GetBytes(buffer);
+            random.GetBytes(buffer);
             password[2] = numbers[buffer[0] % numbers.Length];
-            rng.GetBytes(buffer);
+            random.GetBytes(buffer);
             password[3] = specials[buffer[0] % specials.Length];
 
             return new string(password);
+        }
+
+        public string GetFirstName()
+        {
+            return IsAccountSetUp() ? _storedData!.FirstName ?? "User" : "User";
         }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PasswordControllerApp.Services;
+using System.Linq;  // For LINQ
 
 namespace PasswordControllerApp.Pages
 {
@@ -44,7 +45,7 @@ namespace PasswordControllerApp.Pages
                 return Page();
             }
 
-            // Validate using if-else in service, but display messages
+            // Validate first name (unchanged)
             var nameResult = _passwordService.ValidateFirstName(FirstName);
             NameMessage = nameResult.Message;
             if (!nameResult.IsValid)
@@ -52,13 +53,15 @@ namespace PasswordControllerApp.Pages
                 return Page();
             }
 
+            // Validate password (updated for new tuple)
             var pwResult = _passwordService.ValidatePassword(Password);
-            PasswordMessage = pwResult.Message;
+            PasswordMessage = pwResult.IsValid ? "Password is secure." : string.Join("; ", pwResult.Messages);
             if (!pwResult.IsValid)
             {
                 return Page();
             }
 
+            // Validate PIN (unchanged)
             var pinResult = _passwordService.ValidatePin(Pin);
             PinMessage = pinResult.Message;
             if (!pinResult.IsValid)
@@ -69,12 +72,16 @@ namespace PasswordControllerApp.Pages
             bool success = _passwordService.SetupAccount(FirstName, Password, Pin);
             if (success)
             {
-                SuccessMessage = "Account set up successfully!";
+                // Set session for auto-login after setup
+                HttpContext.Session.SetString("LoggedIn", "true");
+                HttpContext.Session.SetString("FirstName", FirstName);
+                SuccessMessage = "Account set up successfully! Redirecting to profile...";
                 ErrorMessage = null;
-                // Clear inputs for security
+                // Clear inputs
                 FirstName = string.Empty;
                 Password = string.Empty;
                 Pin = string.Empty;
+                return RedirectToPage("/Profile");  // Auto-redirect to Profile
             }
             else
             {

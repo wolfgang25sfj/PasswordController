@@ -1,0 +1,83 @@
+@page
+@model ProfileModel
+@{
+    ViewData["Title"] = "Profile - Vault";
+}
+
+<h2>Your Secure Vault</h2>
+
+@if (!Model.IsLoggedIn)
+{
+    <div class="alert alert-danger">Please <a asp-page="/Login">login</a> to access your profile.</div>
+}
+else
+{
+    <p>Welcome, @Model.FirstName! Here you can store and view your passwords and emails (passwords are hashed for security).</p>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage) || TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@(Model.SuccessMessage ?? TempData["Success"])</div>
+    }
+
+    <!-- Add Entry Form -->
+    <h3>Add New Entry</h3>
+    <form method="post">
+        <div class="form-group">
+            <label for="Email">Email:</label>
+            <input type="email" id="Email" name="Email" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label for="Password">Password:</label>
+            <input type="password" id="Password" name="Password" class="form-control" required />
+        </div>
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-success">Add to Vault</button>
+        </div>
+    </form>
+
+    <!-- Vault Table -->
+    <h3>Stored Entries</h3>
+    @if (Model.VaultEntries.Any())
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Password Status</th>
+                    <th>Added Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entry in Model.VaultEntries)
+                {
+                    <tr>
+                        <td>@entry.Email</td>
+                        <td>Secured (Hashed)</td>
+                        <td>@entry.AddedDate.ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No entries yet. Add one above!</p>
+    }
+}
+
+<div class="mt-3">
+    <a asp-page="/Index" class="btn btn-secondary">Back to Home</a>
+    <a asp-page="/TestPassword" class="btn btn-info">Test Password Strength</a>
+    @if (Model.IsLoggedIn)
+    {
+        <form method="post" style="display:inline;">
+            <button type="submit" name="handler" value="Logout" class="btn btn-danger" onclick="return confirm('Logout?')">Logout</button>
+        </form>
+        <a asp-page="/Reset" class="btn btn-warning">Reset Account</a>
+    }
+</div>

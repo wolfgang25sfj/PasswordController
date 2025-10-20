@@ -14,4 +14,11 @@ namespace PasswordControllerApp.Models
         public string PasswordHash { get; set; } = string.Empty;  // Hashed
         public DateTime AddedDate { get; set; } = DateTime.Now;
     }
+
+    public enum StrengthLevel  // For rating
+    {
+        Weak,
+        Medium,
+        Strong
+    }
 }
