@@ -16,7 +16,7 @@ namespace PasswordControllerApp.Pages
 
         public bool IsLoggedIn => HttpContext.Session.GetString("LoggedIn") == "true" && _passwordService.IsAccountSetUp();
         public string FirstName => HttpContext.Session.GetString("FirstName") ?? _passwordService.GetFirstName();
-        public List<VaultEntry> VaultEntries => _passwordService.GetVaultEntries();
+        public List<VaultEntry> VaultEntries => _passwordService.GetVaultEntries();  // Refreshes on call
         public string? ErrorMessage { get; set; }
         public string? SuccessMessage { get; set; }
 
@@ -57,6 +57,7 @@ namespace PasswordControllerApp.Pages
                 ErrorMessage = "Failed to add entry. Check password strength and email format.";
             }
 
+            // Reload entries for display (since in-memory refreshed)
             return Page();
         }
 

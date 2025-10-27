@@ -1,18 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PasswordControllerApp.Services;
-using PasswordControllerApp.Models;  // For StrengthLevel
+using PasswordControllerApp.Models;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;  // For logging (optional, remove if not needed)
+using Microsoft.Extensions.Logging;
 
 namespace PasswordControllerApp.Pages
 {
     public class TestPasswordModel : PageModel
     {
         private readonly IPasswordService _passwordService;
-        private readonly ILogger<TestPasswordModel> _logger;  // Optional logging
+        private readonly ILogger<TestPasswordModel> _logger;
 
-        public TestPasswordModel(IPasswordService passwordService, ILogger<TestPasswordModel> logger = null)
+        public TestPasswordModel(IPasswordService passwordService, ILogger<TestPasswordModel> logger)
         {
             _passwordService = passwordService;
             _logger = logger;
@@ -28,12 +28,11 @@ namespace PasswordControllerApp.Pages
 
         public void OnGet()
         {
-            // No pre-gen
         }
 
         public void OnPost()
         {
-            _logger?.LogInformation("OnPost called with TestPassword length: {Length}", TestPassword?.Length ?? 0);  // Debug log (server-side)
+            _logger.LogInformation("OnPost called with TestPassword length: {Length}", TestPassword?.Length ?? 0);
 
             if (string.IsNullOrWhiteSpace(TestPassword))
             {
@@ -49,9 +48,9 @@ namespace PasswordControllerApp.Pages
             Strength = result.Level;
         }
 
-        public IActionResult OnGetGenerate()
+        public IActionResult OnPostGenerate()  // Changed to POST
         {
-            _logger?.LogInformation("Generate called");  // Debug log
+            _logger.LogInformation("Generate called");
             var generated = _passwordService.GenerateStrongPassword();
             return Content(generated);
         }

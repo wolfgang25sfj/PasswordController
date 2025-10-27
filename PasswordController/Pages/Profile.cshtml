@@ -19,9 +19,9 @@ else
         <div class="alert alert-danger">@Model.ErrorMessage</div>
     }
 
-    @if (!string.IsNullOrEmpty(Model.SuccessMessage) || TempData["Success"] != null)
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
     {
-        <div class="alert alert-success">@(Model.SuccessMessage ?? TempData["Success"])</div>
+        <div class="alert alert-success">@Model.SuccessMessage</div>
     }
 
     <!-- Add Entry Form -->
@@ -50,6 +50,7 @@ else
                     <th>Email</th>
                     <th>Password Status</th>
                     <th>Added Date</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,6 +60,11 @@ else
                         <td>@entry.Email</td>
                         <td>Secured (Hashed)</td>
                         <td>@entry.AddedDate.ToShortDateString()</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info" onclick="viewPassword('@entry.PasswordHash', '@entry.Email')">
+                                View
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -81,3 +87,15 @@ else
         <a asp-page="/Reset" class="btn btn-warning">Reset Account</a>
     }
 </div>
+
+<script>
+    function viewPassword(hash, email) {
+        // Demo "reveal" - in real app, use secure client-side decrypt (e.g., AES with key from user)
+        var plainPw = prompt(`Password for ${email} (hashed: ${hash.substring(0,8)}...): Enter to 'reveal' (demo only - insecure!)`);
+        if (plainPw) {
+            alert(`Demo Password for ${email}: ${plainPw} (not actually stored plain - for school project)`);
+        } else {
+            alert('View cancelled. Passwords are hashed for security - plain text not stored.');
+        }
+    }
+</script>
